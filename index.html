@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VConn - Local Work Platform</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f4f7fc;color:#172554}
+header{background:#172554;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.logo{font-size:28px;font-weight:bold}.logo span{color:#38bdf8}
+nav{display:flex;gap:7px;flex-wrap:wrap}
+nav button{background:transparent;color:white;padding:10px;border:0}
+nav button.active{background:#31518c}
+main{max-width:1100px;margin:25px auto;padding:0 16px 80px}
+.page{display:none}.page.active{display:block}
+.hero{background:linear-gradient(120deg,#172554,#2563eb);color:white;padding:35px 25px;border-radius:18px;margin-bottom:25px}
+.hero h1{font-size:30px;margin-bottom:12px}.hero p{color:#dbeafe;line-height:1.6}
+button{background:#2563eb;color:white;border:0;padding:12px 18px;border-radius:8px;cursor:pointer;font-weight:bold;margin:5px 3px}
+button:hover{opacity:.85}
+.hero button{background:#38bdf8;color:#172554;margin-top:18px}
+h2{margin:22px 0 15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card,.form-box{background:white;padding:20px;border-radius:14px;border:1px solid #e5eaf2;box-shadow:0 3px 12px #00000008}
+.card h3{margin-bottom:10px}.card p{color:#64748b;font-size:14px;line-height:1.6;margin:7px 0}
+.tag{display:inline-block;background:#e0f2fe;color:#075985;padding:7px 11px;border-radius:20px;font-size:12px;margin:5px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;margin:8px 0 15px;font-size:14px}
+label{font-size:14px;font-weight:bold}
+.form-box{max-width:650px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+.filters select{width:auto;min-width:150px}
+.option{display:flex;align-items:center;gap:10px;margin:13px 0}
+.option input{width:auto;margin:0}
+footer{text-align:center;padding:20px;color:#94a3b8}
+.empty{background:white;padding:20px;border-radius:12px;color:#64748b}
+#toast{display:none;position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#172554;color:white;padding:14px 22px;border-radius:10px;z-index:10;text-align:center;max-width:90%}
+@media(max-width:600px){header{display:block}nav{margin-top:12px}nav button{font-size:12px;padding:8px}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">V<span>Conn</span></div>
+<nav>
+<button class="active" onclick="showPage('home',this)">Home</button>
+<button onclick="showPage('find',this)">Find Work</button>
+<button onclick="showPage('post',this)">Post Work</button>
+<button onclick="showPage('saved',this)">Saved</button>
+<button onclick="showPage('calendar',this)">Calendar</button>
+<button onclick="showPage('profile',this)">Profile</button>
+</nav>
+</header>
+
+<main>
+
+<section id="home" class="page active">
+<div class="hero">
+<h1>Find Work. Hire People.</h1>
+<p>Discover local opportunities and connect with skilled people in your city.</p>
+<button onclick="showPage('find')">Explore Opportunities</button>
+</div>
+<h2>What do you want to do?</h2>
+<div class="grid">
+<div class="card"><h3>🔍 Find Work</h3><p>Explore local jobs and apply for work.</p><button onclick="showPage('find')">Find Jobs</button></div>
+<div class="card"><h3>📢 Hire Someone</h3><p>Post your requirement and find workers.</p><button onclick="showPage('post')">Post Work</button></div>
+<div class="card"><h3>📅 Availability</h3><p>Share your available days and time slots.</p><button onclick="showPage('calendar')">Set Availability</button></div>
+</div>
+<h2>Popular Categories</h2>
+<div class="card">
+<span class="tag">Electrician</span><span class="tag">Plumbing</span>
+<span class="tag">Cleaning</span><span class="tag">Photography</span>
+<span class="tag">Gardening</span><span class="tag">Painting</span>
+<span class="tag">Web Design</span><span class="tag">Home Shifting</span>
+</div>
+</section>
+
+<section id="find" class="page">
+<h2>Find Work</h2>
+<p>Explore local job opportunities.</p>
+<div class="filters">
+<select id="areaFilter" onchange="renderJobs()">
+<option value="all">All Locations</option>
+<option value="nearby">Nearby Area</option>
+<option value="city">Same City</option>
+</select>
+<select id="categoryFilter" onchange="renderJobs()">
+<option value="all">All Categories</option>
+<option>Cleaning</option><option>Electrician</option>
+<option>Plumbing</option><option>Photography</option>
+<option>Gardening</option><option>Painting</option>
+<option>Web Design</option><option>Home Shifting</option><option>Other</option>
+</select>
+</div>
+<div id="jobList" class="grid"></div>
+</section>
+
+<section id="post" class="page">
+<h2>Post a Work Opportunity</h2>
+<div class="form-box">
+<form id="jobForm">
+<label>Work Title</label>
+<input id="jobTitle" required placeholder="Enter work title">
+<label>Category</label>
+<select id="jobCategory" required>
+<option value="">Select Category</option>
+<option>Cleaning</option><option>Electrician</option>
+<option>Plumbing</option><option>Photography</option>
+<option>Gardening</option><option>Painting</option>
+<option>Web Design</option><option>Home Shifting</option><option>Other</option>
+</select>
+<label>Description</label>
+<textarea id="jobDescription" rows="4" required placeholder="Describe the work"></textarea>
+<label>Payment / Budget (₹)</label>
+<input id="jobBudget" type="number" min="1" required>
+<label>Area / Location</label>
+<input id="jobLocation" required placeholder="Enter your area">
+<label>Work Date</label>
+<input id="jobDate" type="date">
+<button type="submit">Publish Work</button>
+</form>
+</div>
+</section>
+
+<section id="saved" class="page">
+<h2>Saved Jobs</h2>
+<div id="savedList" class="grid"></div>
+</section>
+
+<section id="calendar" class="page">
+<h2>My Availability</h2>
+<div class="form-box">
+<p>Select your available days and time slots.</p>
+<div id="calendarOptions"></div>
+<button onclick="saveAvailability()">Save Availability</button>
+<p id="availabilityMessage"></p>
+</div>
+</section>
+
+<section id="profile" class="page">
+<h2>My Profile</h2>
+<div class="form-box">
+<label>Your Name</label>
+<input id="userName" placeholder="Enter your name">
+<label>Your Skills</label>
+<input id="userSkills" placeholder="Enter your skills">
+<label>Your Area</label>
+<input id="userArea" placeholder="Enter your area">
+<button onclick="saveProfile()">Save Profile</button>
+<p id="profileMessage"></p>
+</div>
+</section>
+
+</main>
+<footer>© 2026 VConn | Connect Locally. Work Easily.</footer>
+<div id="toast"></div>
+
+<script>
+function load(key, fallback){
+ try{return JSON.parse(localStorage.getItem(key)) ?? fallback}
+ catch(e){return fallback}
+}
+function store(key,value){
+ localStorage.setItem(key,JSON.stringify(value));
+}
+let jobs=load("vconn_jobs",[
+{id:1,title:"Home Cleaning",category:"Cleaning",description:"Need help with home cleaning.",budget:500,location:"Nearby Area",area:"nearby"},
+{id:2,title:"Electrical Repair",category:"Electrician",description:"Electrical repair work required.",budget:800,location:"City Area",area:"city"},
+{id:3,title:"Website Design",category:"Web Design",description:"Need a simple business website.",budget:2000,location:"City Area",area:"city"}
+]);
+let savedJobs=load("vconn_saved",[]);
+let applications=load("vconn_applied",[]);
+let availability=load("vconn_availability",{});
+
+function toast(message){
+ let t=document.getElementById("toast");
+ t.textContent=message;t.style.display="block";
+ clearTimeout(window.toastTimer);
+ window.toastTimer=setTimeout(()=>t.style.display="none",2500);
+}
+function showPage(page,button){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(page).classList.add("active");
+ document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+ if(button)button.classList.add("active");
+ if(page==="find")renderJobs();
+ if(page==="saved")renderSaved();
+}
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function renderJobs(){
+ let category=document.getElementById("categoryFilter").value;
+ let area=document.getElementById("areaFilter").value;
+ let filtered=jobs.filter(j=>(category==="all"||j.category===category)&&(area==="all"||j.area===area));
+ let list=document.getElementById("jobList");
+ if(!filtered.length){list.innerHTML='<p class="empty">No jobs found. Try another filter!</p>';return;}
+ list.innerHTML=filtered.map(j=>`
+ <div class="card">
+ <h3>${escapeHTML(j.title)}</h3>
+ <span class="tag">${escapeHTML(j.category)}</span>
+ <p>${escapeHTML(j.description)}</p>
+ <p><b>Payment:</b> ₹${Number(j.budget)}</p>
+ <p><b>Location:</b> ${escapeHTML(j.location)}</p>
+ ${j.date?`<p><b>Date:</b> ${escapeHTML(j.date)}</p>`:""}
+ <button onclick="applyJob(${j.id})">Apply Now</button>
+ <button onclick="saveJob(${j.id})">☆ Save Job</button>
+ </div>`).join("");
+}
+document.getElementById("jobForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ let job={
+ id:Date.now(),
+ title:document.getElementById("jobTitle").value.trim(),
+ category:document.getElementById("jobCategory").value,
+ description:document.getElementById("jobDescription").value.trim(),
+ budget:document.getElementById("jobBudget").value,
+ location:document.getElementById("jobLocation").value.trim(),
+ area:"city",
+ date:document.getElementById("jobDate").value
+ };
+ if(!job.title||!job.description||!job.location){toast("Please fill all required fields.");return;}
+ jobs.unshift(job);store("vconn_jobs",jobs);
+ this.reset();toast("Work published successfully!");
+ showPage("find");
+});
+function applyJob(id){
+ if(applications.includes(id)){toast("You have already applied!");return;}
+ applications.push(id);store("vconn_applied",applications);
+ toast("Application submitted successfully!");
+ renderJobs();
+}
+function saveJob(id){
+ if(savedJobs.includes(id)){toast("Job already saved!");return;}
+ savedJobs.push(id);store("vconn_saved",savedJobs);
+ toast("Job saved successfully!");
+}
+function renderSaved(){
+ let list=document.getElementById("savedList");
+ let items=jobs.filter(j=>savedJobs.includes(j.id));
+ if(!items.length){list.innerHTML='<p class="empty">No saved jobs yet.</p>';return;}
+ list.innerHTML=items.map(j=>`
+ <div class="card">
+ <h3>${escapeHTML(j.title)}</h3>
+ <span class="tag">${escapeHTML(j.category)}</span>
+ <p>${escapeHTML(j.description)}</p>
+ <p><b>Payment:</b> ₹${Number(j.budget)}</p>
+ <p><b>Location:</b> ${escapeHTML(j.location)}</p>
+ <button onclick="applyJob(${j.id})">Apply Now</button>
+ <button onclick="removeSaved(${j.id})">Remove</button>
+ </div>`).join("");
+}
+function removeSaved(id){
+ savedJobs=savedJobs.filter(x=>x!==id);
+ store("vconn_saved",savedJobs);renderSaved();
+ toast("Removed from saved jobs.");
+}
+function saveProfile(){
+ let profile={
+ name:document.getElementById("userName").value.trim(),
+ skills:document.getElementById("userSkills").value.trim(),
+ area:document.getElementById("userArea").value.trim()
+ };
+ store("vconn_profile",profile);
+ document.getElementById("profileMessage").textContent="Profile saved successfully!";
+ toast("Profile saved!");
+}
+function loadProfile(){
+ let p=load("vconn_profile",{});
+ document.getElementById("userName").value=p.name||"";
+ document.getElementById("userSkills").value=p.skills||"";
+ document.getElementById("userArea").value=p.area||"";
+}
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const slots=["Morning","Afternoon","Evening"];
+function buildCalendar(){
+ let html="";
+ days.forEach(day=>{
+ html+=`<h3>${day}</h3>`;
+ slots.forEach(slot=>{
+ let checked=availability[day]?.includes(slot)?"checked":"";
+ html+=`<label class="option"><input type="checkbox" data-day="${day}" value="${slot}" ${checked}>${slot}</label>`;
+ });
+ });
+ document.getElementById("calendarOptions").innerHTML=html;
+}
+function saveAvailability(){
+ let result={};
+ document.querySelectorAll("#calendarOptions input:checked").forEach(input=>{
+ let day=input.dataset.day;
+ if(!result[day])result[day]=[];
+ result[day].push(input.value);
+ });
+ availability=result;store("vconn_availability",availability);
+ document.getElementById("availabilityMessage").textContent="Availability saved successfully!";
+ toast("Availability saved!");
+}
+loadProfile();
+buildCalendar();
+renderJobs();
+</script>
+</body>
+</html>
